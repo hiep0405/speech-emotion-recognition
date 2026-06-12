@@ -54,7 +54,7 @@ def extract_features(speaker_files, features, params):
         data_tot = np.vstack(data_tot).astype(np.float32)
         labels_tot = np.asarray(labels_tot, dtype=np.int8)
         labels_segs_tot = np.asarray(labels_segs_tot, dtype=np.int8)
-        segs = np.asarray(segs, dtype=np.int8)
+        segs = np.asarray(segs, dtype=np.int32)
 
         # Make sure everything is extracted properly
         assert len(labels_tot) == len(segs)

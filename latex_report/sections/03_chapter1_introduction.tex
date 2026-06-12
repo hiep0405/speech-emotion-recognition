@@ -1,0 +1,33 @@
+% ============================================================
+% CHƯƠNG 1: TỔNG QUAN
+% ============================================================
+\chapter{Tổng quan}
+\label{chap:introduction}
+
+\section{Đặt vấn đề}
+\label{sec:problem}
+
+Cảm xúc đóng vai trò quan trọng trong giao tiếp giữa con người. Bên cạnh nội dung ngôn ngữ, giọng nói mang theo các dấu hiệu cảm xúc tinh tế thông qua cao độ (pitch), cường độ (energy), tốc độ nói (speech rate) và chất lượng giọng (voice quality). Việc nhận dạng tự động cảm xúc từ giọng nói -- gọi tắt là \textbf{SER (Speech Emotion Recognition)} -- là một lĩnh vực nghiên cứu đang thu hút sự quan tâm lớn trong cộng đồng khoa học. Công nghệ này có nhiều ứng dụng thực tiễn quan trọng, bao gồm hỗ trợ chăm sóc sức khỏe tâm thần nhằm phát hiện sớm các dấu hiệu trầm cảm hay lo âu của bệnh nhân thông qua giọng nói, tối ưu hóa các hệ thống tổng đài tự động nhờ khả năng nhận biết cảm xúc khách hàng để phản hồi phù hợp, nâng cao trải nghiệm giao tiếp tự nhiên của trợ lý ảo thông minh, giám sát an ninh để phát hiện các tình trạng khẩn cấp, và hỗ trợ đánh giá trạng thái cảm xúc của học sinh trong quá trình học tập trực tuyến.
+
+Tuy nhiên, bài toán SER cũng đặt ra nhiều thách thức kỹ thuật đáng kể. Trước hết là sự mất cân bằng dữ liệu cực đoan trong thực tế, khi cảm xúc bình thường (Neutral) chiếm đa số nhưng các trạng thái cảm xúc mạnh như vui vẻ (Happiness) hay tức giận (Anger) lại có số lượng mẫu rất hạn chế. Thách thức tiếp theo liên quan đến sự tương đồng đặc tính âm học giữa các cảm xúc có cùng mức kích hoạt thấp (low arousal) như Neutral và Sadness, gây khó khăn cho việc phân biệt. Cuối cùng là tính phụ thuộc vào người nói do mỗi cá nhân có cách biểu lộ cảm xúc rất khác nhau, đòi hỏi mô hình phân loại phải đạt khả năng tổng quát hóa cao.
+
+\section{Mục tiêu đồ án}
+\label{sec:objectives}
+
+\subsection{Mục tiêu tổng quát}
+
+Nghiên cứu, đánh giá các hạn chế của mô hình nhận dạng cảm xúc giọng nói (SER) hiện tại dựa trên mạng AlexNet và hàm lỗi Cross Entropy trước vấn đề mất cân bằng dữ liệu và đặc tính âm học tương đồng. Từ đó, đề xuất và thực hiện cải tiến hệ thống bằng các kỹ thuật tiên tiến bao gồm tăng cường dữ liệu hiện đại (EMix Augmentation \cite{dang2023emix}), thay thế bằng các kiến trúc học sâu hiện đại thông qua Transfer Learning như ResNet, DenseNet, EfficientNet, MobileNet, và áp dụng hàm lỗi Focal Loss nhằm nâng cao độ chính xác tổng thể cũng như độ bền bỉ (robustness) của mô hình trên môi trường đánh giá độc lập người nói (\textit{Speaker-Independent}).
+
+\subsection{Mục tiêu cụ thể}
+
+Để đạt được mục tiêu tổng quát, đồ án tập trung thực hiện các nhiệm vụ cụ thể sau. Đầu tiên, nhóm nghiên cứu phân tích chuyên sâu bộ dữ liệu IEMOCAP và thiết lập quy trình tiền xử lý tín hiệu âm thanh chuẩn. Tiếp theo, hệ thống xây dựng mô hình baseline sử dụng AlexNet kết hợp với Cross Entropy Loss làm cơ sở đối chứng. Sau đó, nhóm cải tiến kiến trúc mô hình bằng cách áp dụng Transfer Learning với 5 kiến trúc CNN khác nhau, đồng thời triển khai hàm lỗi Focal Loss để giải quyết vấn đề mất cân bằng dữ liệu. Bên cạnh đó, nhóm cũng tích hợp kỹ thuật tăng cường dữ liệu EMix \cite{dang2023emix} (bao gồm các biến thể EMix-S, EMix-N, EMix-NS) và thực hiện Ablation Study nhằm đánh giá đóng góp cụ thể của từng kỹ thuật. Cuối cùng, mô hình tối ưu nhất được xác định thông qua quy trình đánh giá chéo 5-Fold theo phiên hội thoại nhằm đảm bảo độ tin cậy về mặt thống kê.
+
+\section{Phạm vi nghiên cứu}
+\label{sec:scope}
+
+Nghiên cứu được giới hạn trên kênh âm thanh (audio) của loại hội thoại ngẫu hứng (improvised) thuộc bộ dữ liệu chuẩn IEMOCAP. Bài toán phân loại được thiết lập cho 4 lớp cảm xúc chính bao gồm Anger (Tức giận), Sadness (Buồn bã), Happiness (Vui vẻ) và Neutral (Bình thường). Đặc trưng đầu vào của mô hình là Log-Spectrogram kích thước $200 \times 300$ đại diện cho 200 băng tần số thấp và 300 khung thời gian. Hệ thống được triển khai sử dụng framework PyTorch phiên bản 1.6 trở lên, chạy trên nền tảng ngôn ngữ lập trình Python 3.10 và huấn luyện trên phần cứng GPU NVIDIA GeForce RTX 3060 với 12GB VRAM.
+
+\section{Cấu trúc báo cáo}
+\label{sec:report_structure}
+
+Báo cáo đồ án được cấu trúc thành 5 chương chính nhằm trình bày toàn diện đề tài nghiên cứu. Chương 1 trình bày tổng quan bao gồm đặt vấn đề, mục tiêu, phạm vi nghiên cứu và cấu trúc báo cáo. Chương 2 cung cấp cơ sở lý thuyết về xử lý tín hiệu âm thanh số, mạng CNN, phương pháp Transfer Learning, hàm lỗi Focal Loss và kỹ thuật EMix. Chương 3 mô tả chi tiết phương pháp đề xuất bao gồm kiến trúc hệ thống, quy trình xử lý dữ liệu và cấu hình huấn luyện. Chương 4 tập trung trình bày kết quả thực nghiệm, Ablation Study, đánh giá chéo 5-Fold và đưa ra các phân tích so sánh cụ thể. Cuối cùng, Chương 5 tóm tắt các đóng góp chính của đồ án, nêu ra những hạn chế hiện tại và định hướng các nghiên cứu phát triển tiếp theo.

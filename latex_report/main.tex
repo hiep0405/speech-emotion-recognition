@@ -1,0 +1,155 @@
+% ============================================================
+% BÁO CÁO ĐỒ ÁN CƠ SỞ
+% Đề tài: NGHIÊN CỨU VÀ CẢI TIẾN MÔ HÌNH NHẬN DẠNG CẢM XÚC GIỌNG NÓI(SER)
+% ============================================================
+\documentclass[12pt, a4paper]{report}
+
+% ====== PACKAGES ======
+\usepackage[utf8]{inputenc}
+\usepackage[T5]{fontenc}          % Hỗ trợ tiếng Việt
+\usepackage[vietnamese]{babel}    % Ngôn ngữ tiếng Việt
+\usepackage{times}                % Font Times New Roman
+\usepackage{geometry}
+\geometry{
+  left=3.5cm,
+  right=2cm,
+  top=2cm,
+  bottom=2cm
+}
+\usepackage{amsmath}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{amsmath, amssymb}
+\usepackage[hyphens]{url}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{setspace}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{indentfirst}
+\usepackage{enumitem}
+\usepackage{tabularx}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage[titles]{tocloft}
+\usepackage{tikz}
+\usetikzlibrary{calc, positioning, arrows.meta, backgrounds, fit}
+
+% ====== CẤU HÌNH ======
+\onehalfspacing                   % Giãn dòng 1.5
+
+% Đường dẫn ảnh
+\graphicspath{{images/}}
+
+% Header / Footer
+\pagestyle{plain}
+
+% Hyperlink
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!70!black,
+  citecolor=green!50!black,
+  urlcolor=blue!60!black
+}
+
+% Code listing style
+\lstset{
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{blue}\bfseries,
+  commentstyle=\color{gray},
+  stringstyle=\color{red!70!black},
+  backgroundcolor=\color{gray!5},
+  frame=single,
+  breaklines=true,
+  showstringspaces=false,
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  tabsize=4,
+  captionpos=b
+}
+
+% Định dạng chapter/section
+\titleformat{\chapter}
+  {\normalfont\Large\bfseries\centering}
+  {\MakeUppercase{\chaptertitlename}\ \thechapter:\ }{0.5em}{\MakeUppercase}
+\titlespacing*{\chapter}{0pt}{-30pt}{20pt}
+
+% ============================================================
+%                   BẮT ĐẦU TÀI LIỆU
+% ============================================================
+\begin{document}
+
+% ====== TRANG BÌA ======
+\input{sections/00_cover}
+
+% ====== BẢNG PHÂN CÔNG NHIỆM VỤ ======
+\input{sections/00_task_division}
+\pagenumbering{roman}
+
+% ====== LỜI CẢM ƠN ======
+\renewcommand{\normalsize}{\fontsize{13pt}{16pt}\selectfont}
+\normalsize
+
+\titleformat{\chapter}
+  {\normalfont\fontsize{14pt}{17pt}\bfseries\centering}
+  {\MakeUppercase{\chaptertitlename}\ \thechapter:\ }{0.5em}{\MakeUppercase}
+\titlespacing*{\chapter}{0pt}{-30pt}{20pt}
+
+\titleformat{\section}
+  {\normalfont\fontsize{13pt}{16pt}\bfseries}
+  {\thesection\ }{0.5em}{}
+
+\titleformat{\subsection}
+  {\normalfont\fontsize{13pt}{16pt}\bfseries}
+  {\thesubsection\ }{0.5em}{}
+
+\input{sections/01_acknowledgment}
+
+% ====== MỤC LỤC ======
+\tableofcontents
+\newpage
+
+% ====== DANH MỤC HÌNH ẢNH ======
+\listoffigures
+\newpage
+
+% ====== DANH MỤC BẢNG ======
+\listoftables
+\newpage
+
+% ====== DANH MỤC TỪ VIẾT TẮT ======
+\input{sections/02_abbreviations}
+
+% ====== CHƯƠNG 1: TỔNG QUAN ======
+\clearpage
+\pagenumbering{arabic}
+\setcounter{page}{1}
+\input{sections/03_chapter1_introduction}
+
+% ====== CHƯƠNG 2: CƠ SỞ LÝ THUYẾT ======
+\input{sections/04_chapter2_theory}
+
+% ====== CHƯƠNG 3: PHƯƠNG PHÁP ĐỀ XUẤT ======
+\input{sections/05_chapter3_methodology}
+
+% ====== CHƯƠNG 4: THỰC NGHIỆM VÀ KẾT QUẢ ======
+\input{sections/06_chapter4_experiments}
+
+% ====== CHƯƠNG 5: KẾT LUẬN VÀ HƯỚNG PHÁT TRIỂN ======
+\input{sections/07_chapter5_conclusion}
+
+% ====== TÀI LIỆU THAM KHẢO ======
+\input{sections/08_references}
+
+% ====== PHỤ LỤC ======
+\input{sections/09_appendix}
+
+\end{document}

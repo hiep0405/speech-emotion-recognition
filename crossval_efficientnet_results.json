@@ -1,0 +1,74 @@
+{
+  "model": "EfficientNet-B0",
+  "loss": "Focal Loss",
+  "augmentation": "EMix-S",
+  "epochs": 60,
+  "folds": [
+    {
+      "fold": 1,
+      "val_id": "1F",
+      "test_id": "1M",
+      "wa": 80.98,
+      "ua": 74.25,
+      "loss": 0.2792,
+      "params": "4.01M",
+      "elapsed_s": 2229.703022480011,
+      "label": "efficientnet_focal_cv_fold1",
+      "error": false
+    },
+    {
+      "fold": 2,
+      "val_id": "2F",
+      "test_id": "2M",
+      "wa": 65.87,
+      "ua": 65.11,
+      "loss": 0.4978,
+      "params": "4.01M",
+      "elapsed_s": 1552.6930241584778,
+      "label": "efficientnet_focal_cv_fold2",
+      "error": false
+    },
+    {
+      "fold": 3,
+      "val_id": "3F",
+      "test_id": "3M",
+      "wa": 69.71,
+      "ua": 61.76,
+      "loss": 1.0062,
+      "params": "4.01M",
+      "elapsed_s": 1341.358503818512,
+      "label": "efficientnet_focal_cv_fold3",
+      "error": false
+    },
+    {
+      "fold": 4,
+      "val_id": "4F",
+      "test_id": "4M",
+      "wa": 71.04,
+      "ua": 57.73,
+      "loss": 1.0272,
+      "params": "4.01M",
+      "elapsed_s": 1400.22824716568,
+      "label": "efficientnet_focal_cv_fold4",
+      "error": false
+    },
+    {
+      "fold": 5,
+      "val_id": "5F",
+      "test_id": "5M",
+      "wa": 61.39,
+      "ua": 52.51,
+      "loss": 1.6825,
+      "params": "4.01M",
+      "elapsed_s": 1434.4615700244904,
+      "label": "efficientnet_focal_cv_fold5",
+      "error": false
+    }
+  ],
+  "summary": {
+    "wa_mean": 69.798,
+    "wa_std": 6.52243942095287,
+    "ua_mean": 62.272000000000006,
+    "ua_std": 7.3173120747990525
+  }
+}

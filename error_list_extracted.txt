@@ -1,0 +1,28 @@
+Dưới đây là báo cáo phản biện học thuật chi tiết và nghiêm ngặt đối với đồ án tốt nghiệp *"Nghiên cứu và Cải tiến Hệ thống Nhận dạng Cảm xúc Giọng nói (SER) trên bộ dữ liệu IEMOCAP"*, đóng vai trò là một giảng viên phản biện, hội đồng chấm khóa luận và reviewer của hội nghị khoa học AI/ML quốc tế.
+
+---
+
+## PHẦN 1: CHI TIẾT CÁC LỖI PHÁT HIỆN
+
+### Lỗi 1: Mâu thuẫn toán học nghiêm trọng giữa WA, UA và Per-class Accuracy của mô hình AlexNet Baseline
+*   **[MỨC ĐỘ]**: **Critical**
+*   **[VỊ TRÍ]**: 
+    *   Chương: 4 (Thực nghiệm và kết quả)
+    *   Mục: 4.3.1 (AlexNet Baseline) và 4.4 (Bảng 4.4 - Per-class Accuracy)
+    *   Trang: 13 & 15 trong bản biên dịch gốc (tương ứng dòng 114 và dòng 204 trong [06_chapter4_experiments.tex](file:///c:/Users/HIEPHIEP/Downloads/speech_emo_recognition/speech_emo_recognition/latex_report/sections/06_chapter4_experiments.tex))
+*   **[MÔ TẢ LỖI]**: 
+    Báo cáo khẳng định mô hình AlexNet Baseline bị thiên lệch hoàn toàn (majority class bias) và *"phân loại tất cả mẫu vào lớp Anger, đạt 100% accuracy cho Anger nhưng 0% cho 3 lớp còn lại"*. Đồng thời, Bảng 4.4 ghi nhận lớp Anger đạt 100.00% và 3 lớp còn lại đạt 0.00%. Tuy nhiên, kết quả Weighted Accuracy (WA) của Baseline được báo cáo ở Bảng 4.2 lại là **50.73%**.
+*   **[TẠI SAO ĐÂY LÀ LỖI]**: 
+    Đây là một mâu thuẫn toán học phi lý. Phân bố tập test (mẫu 1M) gồm 205 mẫu: Anger (25 mẫu), Sadness (61 mẫu), Happiness (15 mẫu), Neutral (104 mẫu).
+    *   Nếu mô hình dự đoán toàn bộ mẫu là **Anger** (như tác giả viết), số mẫu đúng là 25/205. Khi đó, WA thực tế phải là $25/205 \approx 12.20\%$, chứ không thể là **50.73%**.
+    *   Nếu mô hình dự đoán toàn bộ mẫu là **Neutral** (lớp đa số thực 
+<truncated 29074 bytes>
+u lớn nhất của báo cáo:
+1.  **Lỗi logic toán học trong phân tích mô hình nền tảng (Baseline)**: Sự nhầm lẫn giữa việc mô hình dự đoán toàn bộ lớp Neutral (lớp đa số thực tế) với lớp Anger (chỉ chiếm 12.7% tập test) cho thấy tác giả chưa phân tích kỹ ma trận nhầm lẫn thực tế của baseline mà chỉ nhìn nhận số liệu một cách cơ học.
+2.  **Lỗi thiết kế Cross-Validation**: Việc validation cố định là Nữ và test cố định là Nam làm mất đi ý nghĩa của một bộ kiểm thử Speaker-Independent toàn diện, bỏ qua hoàn toàn việc đánh giá mô hình trên đối tượng nữ giới.
+3.  **Trình bày số liệu Ablation thiếu nghiêm túc**: Việc đưa các con số xấp xỉ dạng khoảng (`~`) vào bảng kết quả của một đồ án khoa học làm giảm độ tin cậy của toàn bộ phần thực nghiệm.
+
+### Các điểm mạnh lớn nhất của báo cáo:
+1.  **Hệ thống thực nghiệm và mã nguồn hoàn thiện**: Mã nguồn được tổ chức rất quy củ, sạch sẽ, tự động lưu trữ các đồ thị huấn luyện và ma trận nhầm lẫn. Việc viết thêm các script tự động chạy so sánh (`plot_comparison.py`) và cross-validation (`crossval_efficientnet.py`) thể hiện tư duy lập trình và nghiên cứu rất tốt.
+2.  **Áp dụng kỹ thuật hiện đại**: Sự kết hợp giữa Transfer Learning của các mạng CNN mạnh mẽ, hàm lỗi Focal Loss cải tiến đa lớp và kỹ thuật tăng cường dữ liệu đặc thù cho SER (EMix) là một hướng đi bài bản, giải quyết trực tiếp bài toán khó của nhận dạng cảm xúc.
+3.  **Khả năng tự vẽ sơ đồ TikZ xuất sắc**: Sơ đồ luồng dữ liệu hệ thống được thiết kế bằng mã TikZ chuyên nghiệp trực tiếp trong tài liệu LaTeX, đảm bảo độ sắc nét cao và nhất quán phông chữ.

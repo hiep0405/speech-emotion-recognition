@@ -1,0 +1,47 @@
+[
+  {
+    "label": "efficientnet_focal_loss",
+    "name": "EfficientNet + Focal + EMix-S (Confirmed)",
+    "error": false,
+    "wa": 80.49,
+    "ua": 73.25,
+    "loss": 0.2786,
+    "elapsed": 0
+  },
+  {
+    "label": "efficientnet_ce_no_emix",
+    "name": "EfficientNet + CE (no EMix)",
+    "error": true,
+    "wa": null,
+    "ua": null,
+    "loss": null,
+    "elapsed": 0.41718006134033203
+  },
+  {
+    "label": "efficientnet_focal_no_emix",
+    "name": "EfficientNet + Focal (no EMix)",
+    "error": true,
+    "wa": null,
+    "ua": null,
+    "loss": null,
+    "elapsed": 0.1683800220489502
+  },
+  {
+    "label": "efficientnet_focal_emix_ns",
+    "name": "EfficientNet + Focal + EMix-NS",
+    "error": true,
+    "wa": null,
+    "ua": null,
+    "loss": null,
+    "elapsed": 0.1336681842803955
+  },
+  {
+    "label": "efficientnet_focal_emix_n",
+    "name": "EfficientNet + Focal + EMix-N",
+    "error": true,
+    "wa": null,
+    "ua": null,
+    "loss": null,
+    "elapsed": 0.14159774780273438
+  }
+]

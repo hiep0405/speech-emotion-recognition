@@ -86,7 +86,7 @@ def main(args):
     classes = database.get_classes()
     n_speaker=len(features_data)
     n_class=len(classes)
-    class_dist= np.zeros((n_speaker,n_class),dtype=np.int)
+    class_dist= np.zeros((n_speaker,n_class),dtype=int)
     speakers=[]
     data_shape=[]
     for i,speaker in enumerate(features_data.keys()):

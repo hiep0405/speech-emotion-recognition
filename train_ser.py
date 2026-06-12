@@ -12,6 +12,151 @@ import os
 import random
 from collections import Counter
 from torch.backends import cudnn
+import torchvision
+
+class FocalLoss(nn.Module):
+    def __init__(self, alpha=None, gamma=2.0, reduction='mean'):
+        super(FocalLoss, self).__init__()
+        self.gamma = gamma
+        self.reduction = reduction
+        if alpha is not None:
+            self.alpha = torch.tensor(alpha)
+        else:
+            self.alpha = None
+
+    def forward(self, inputs, targets):
+        ce_loss = f.cross_entropy(inputs, targets, reduction='none')
+        pt = torch.exp(-ce_loss)
+        focal_loss = ((1 - pt) ** self.gamma) * ce_loss
+        
+        if self.alpha is not None:
+            self.alpha = self.alpha.to(inputs.device)
+            alpha_t = self.alpha[targets]
+            focal_loss = alpha_t * focal_loss
+            
+        if self.reduction == 'mean':
+            return torch.mean(focal_loss)
+        elif self.reduction == 'sum':
+            return torch.sum(focal_loss)
+        else:
+            return focal_loss
+
+
+def emix_data(x, y, emix_type='emix-s'):
+    """
+    Applies EMix data augmentation on a batch.
+    """
+    batch_size = x.size(0)
+    if batch_size <= 1:
+        return x, y
+        
+    mixed_x = x.clone()
+    y_np = y.cpu().numpy()
+    
+    # helper
+    def get_indices(c):
+        return np.where(y_np == c)[0]
+
+    if emix_type == 'emix-ns':
+        mode = 'emix-n' if random.random() < 0.5 else 'emix-s'
+    else:
+        mode = emix_type
+
+    # IEMOCAP Neutral index is 3
+    neutral_idx_all = get_indices(3)
+    
+    for i in range(batch_size):
+        c_i = y_np[i]
+        
+        if mode == 'emix-s':
+            same_class_indices = get_indices(c_i)
+            same_class_indices = same_class_indices[same_class_indices != i]
+            if len(same_class_indices) > 0:
+                j = random.choice(same_class_indices)
+                lam = random.uniform(0.0, 1.0)
+                mixed_x[i] = lam * x[i] + (1 - lam) * x[j]
+                
+        elif mode == 'emix-n':
+            if c_i != 3: # Not neutral
+                if len(neutral_idx_all) > 0:
+                    j = random.choice(neutral_idx_all)
+                    lam = random.uniform(0.5, 1.0)
+                    mixed_x[i] = lam * x[i] + (1 - lam) * x[j]
+            else: # Neutral
+                same_class_indices = neutral_idx_all[neutral_idx_all != i]
+                if len(same_class_indices) > 0:
+                    j = random.choice(same_class_indices)
+                    lam = random.uniform(0.0, 1.0)
+                    mixed_x[i] = lam * x[i] + (1 - lam) * x[j]
+
+    return mixed_x, y
+
+
+def save_plots(train_loss, val_loss, val_wa, val_ua, save_label):
+    import matplotlib.pyplot as plt
+    epochs = range(1, len(train_loss) + 1)
+    
+    train_loss = [float(x) for x in train_loss]
+    val_loss = [float(x) for x in val_loss]
+    val_wa = [float(x) for x in val_wa]
+    val_ua = [float(x) for x in val_ua]
+    
+    plt.figure(figsize=(12, 5))
+    
+    plt.subplot(1, 2, 1)
+    plt.plot(epochs, train_loss, 'b-', label='Train Loss')
+    plt.plot(epochs, val_loss, 'r-', label='Val Loss')
+    plt.title('Training and Validation Loss')
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.grid(True)
+    
+    plt.subplot(1, 2, 2)
+    plt.plot(epochs, val_wa, 'g-', label='Val WA (%)')
+    plt.plot(epochs, val_ua, 'm-', label='Val UA (%)')
+    plt.title('Validation Accuracy (WA & UA)')
+    plt.xlabel('Epochs')
+    plt.ylabel('Accuracy (%)')
+    plt.legend()
+    plt.grid(True)
+    
+    plt.tight_layout()
+    plot_path = f"{save_label}_curves.png"
+    plt.savefig(plot_path, dpi=300)
+    plt.close()
+    print(f"Saved training curves to {plot_path}")
+
+
+def save_confusion_matrix_plot(conf, save_label):
+    import matplotlib.pyplot as plt
+    classes = ["ang", "sad", "hap", "neu"]
+    fig, ax = plt.subplots(figsize=(6, 5))
+    
+    im = ax.imshow(conf, interpolation='nearest', cmap=plt.cm.Blues)
+    ax.figure.colorbar(im, ax=ax)
+    
+    ax.set(xticks=np.arange(conf.shape[1]),
+           yticks=np.arange(conf.shape[0]),
+           xticklabels=classes, yticklabels=classes,
+           title='Confusion Matrix',
+           ylabel='True label',
+           xlabel='Predicted label')
+           
+    fmt = 'd'
+    thresh = conf.max() / 2.
+    for i in range(conf.shape[0]):
+        for j in range(conf.shape[1]):
+            ax.text(j, i, format(conf[i, j], fmt),
+                    ha="center", va="center",
+                    color="white" if conf[i, j] > thresh else "black")
+                    
+    fig.tight_layout()
+    conf_path = f"{save_label}_conf.png"
+    plt.savefig(conf_path, dpi=300)
+    plt.close()
+    print(f"Saved confusion matrix plot to {conf_path}")
+
 
 
 def main(args):
@@ -36,7 +181,10 @@ def main(args):
             #parameters for tuning
             'oversampling': args.oversampling,
             'pretrained': args.pretrained,
-            'mixup' : args.mixup
+            'mixup' : args.mixup,
+            'load_model': args.load_model,
+            'loss_type': args.loss_type,
+            'emix': args.emix
             }
 
     print('*'*40)
@@ -113,6 +261,15 @@ def parse_arguments(argv):
     
     parser.add_argument('--mixup', action='store_true',
         help='Set this to true to perform mixup at dataloader')
+    
+    parser.add_argument('--load_model', type=str, default=None,
+        help='Path to a saved model state dict to load before training')
+
+    parser.add_argument('--loss_type', type=str, default='ce', choices=['ce', 'focal'],
+        help='Loss function to use: ce (CrossEntropy) or focal (Focal Loss)')
+
+    parser.add_argument('--emix', type=str, default=None, choices=[None, 'emix-n', 'emix-s', 'emix-ns'],
+        help='Enable EMix data augmentation scheme: emix-n, emix-s, or emix-ns')
 
     return parser.parse_args(argv)
 
@@ -218,8 +375,32 @@ def train(dataset, params, save_label='default'):
         model = SER_AlexNet_GAP(num_classes=num_classes,
                             in_ch=num_in_ch,
                             pretrained=pretrained).to(device)
+    elif ser_model == 'resnet':
+        from model import SER_ResNet
+        model = SER_ResNet(num_classes=num_classes,
+                           in_ch=num_in_ch,
+                           pretrained=pretrained).to(device)
+    elif ser_model == 'densenet':
+        from model import SER_DenseNet
+        model = SER_DenseNet(num_classes=num_classes,
+                            in_ch=num_in_ch,
+                            pretrained=pretrained).to(device)
+    elif ser_model == 'efficientnet':
+        from model import SER_EfficientNet
+        model = SER_EfficientNet(num_classes=num_classes,
+                                in_ch=num_in_ch,
+                                pretrained=pretrained).to(device)
+    elif ser_model == 'mobilenet':
+        from model import SER_MobileNet
+        model = SER_MobileNet(num_classes=num_classes,
+                             in_ch=num_in_ch,
+                             pretrained=pretrained).to(device)
     else:
         raise ValueError('No model found!')
+    
+    if params['load_model'] is not None:
+        print(f"Loading model from {params['load_model']}...")
+        model.load_state_dict(torch.load(params['load_model']))
     
     
     print(model.eval())
@@ -228,7 +409,19 @@ def train(dataset, params, save_label='default'):
 
     #Set loss criterion and optimizer
     optimizer = optim.AdamW(model.parameters(), lr=params['lr'])
-    criterion = nn.CrossEntropyLoss()
+    
+    # Configure loss function (CrossEntropy or Focal Loss)
+    if params['loss_type'] == 'focal':
+        # Calculate inverse class frequency weights from training labels for focal loss alpha
+        targets = train_dataset.target
+        class_counts_dict = Counter(targets)
+        total_samples = len(targets)
+        class_weights = [total_samples / (num_classes * class_counts_dict.get(c, 1)) for c in range(num_classes)]
+        print(f"Focal Loss Enabled. Automatically calculated class weights: {class_weights}")
+        criterion = FocalLoss(alpha=class_weights, gamma=2.0)
+    else:
+        criterion = nn.CrossEntropyLoss()
+        
     if mixup == True:
         criterion_mixup = nn.CrossEntropyLoss(reduction='none')
 
@@ -260,6 +453,10 @@ def train(dataset, params, save_label='default'):
         for i, batch in enumerate(train_loader):
             
             train_data_batch, train_labels_batch = batch
+            
+            # Apply EMix data augmentation on CPU if selected
+            if params['emix'] is not None:
+                train_data_batch, train_labels_batch = emix_data(train_data_batch, train_labels_batch, emix_type=params['emix'])
 
             # Clear gradients
             optimizer.zero_grad()
@@ -312,8 +509,8 @@ def train(dataset, params, save_label='default'):
             val_wa = val_result[1]
             val_ua = val_result[2]
 
-            # Update best model based on validation UA
-            if val_wa > best_val_wa:
+            # Update best model based on validation UA (or WA as in baseline)
+            if val_ua > best_val_ua:
                 best_val_ua = val_ua
                 best_val_wa = val_wa
                 best_val_loss = val_loss
@@ -342,6 +539,12 @@ def train(dataset, params, save_label='default'):
               "{:.2f}".format(test_result[0], test_result[1], test_result[2]))
         print("Confusion matrix:\n{}".format(confusion_matrix[1]))   
         
+    # Auto-save visualization plots
+    try:
+        save_plots(all_train_loss, all_val_loss, all_val_wa, all_val_ua, save_label)
+        save_confusion_matrix_plot(confusion_matrix[0], save_label)
+    except Exception as e:
+        print(f"Error during plotting: {e}")
 
     return(all_train_loss, all_train_wa, all_train_ua,
             all_val_loss, all_val_wa, all_val_ua,

@@ -1,125 +1,171 @@
-# Speech Emotion Recognition (SER) with Pre-trained Image Classifier - PyTorch Implementation
+# Speech Emotion Recognition (SER) — PyTorch Implementation
 
-This repository containts my works on speech emotion recognition using spectrogram of the utterances as input. Spectrogram contains time-frequency information which reflects the acoustic cues, including those from emotion. I formulated the task as image classification using pre-trained image classification network. I proposed two AlexNet-based models: __AlexNet Finetuning__ and __FCN+GAP__ (Fully-Convolutional Network with Global Average Pooling). These networks were finetuned for speech emotion recognition with __IEMOCAP__ emotion speech dataset. I also implemented two deep learning enhancement techniques based on __mixup augmentation__ and __stability training__. These enhancements aim to improve generalization and robustness of the models given unseen utterances and diverse acoustic environments. 
+Hệ thống nhận dạng cảm xúc giọng nói (SER) sử dụng Log Spectrogram làm đặc trưng đầu vào và các mạng CNN (Transfer Learning) để phân loại cảm xúc. Được thực hiện và mở rộng trên bộ dữ liệu **IEMOCAP** (5 sessions, 10 speakers).
 
-This is the topic of my project as part of my post-graduate study (MSc. in AI, Nanyang Technological University, Singapore). This repository also includes resources for SER, including publications, datasets, and useful python packages. These resources are collected during my research, implementation and optimization phase. 
+---
 
+## Kết quả thực nghiệm (Single Fold: val=1F, test=1M)
 
-## This Repository
+| # | Mô hình | Loss Function | Data Augmentation | Params | Test Loss | WA (%) | UA (%) |
+|---|---------|--------------|-------------------|--------|-----------|--------|--------|
+| 1 | AlexNet (Baseline) | Cross Entropy | Không | 57.02M | 1.2138 | 50.73 | 25.00 |
+| 2 | AlexNet GAP | Cross Entropy | Không | 2.47M | 0.9859 | 78.54 | 64.89 |
+| 3 | ResNet-18 | Focal Loss | EMix-S | 11.18M | 0.4541 | 76.10 | 64.37 |
+| 4 | DenseNet-121 | Focal Loss | EMix-S | 6.96M | 0.2927 | 68.78 | 66.48 |
+| 5 | **EfficientNet-B0** ★ | **Focal Loss** | **EMix-S** | **4.01M** | **0.2786** | **80.49** | **73.25** |
+| 6 | MobileNet-V2 | Focal Loss | EMix-S | 2.23M | 0.3549 | 76.59 | 71.15 |
 
-My approach was inspired by the work of Zhang et. al. (2019) presented in [*Attention Based Fully Convolutional Network for Speech Emotion Recognition*](https://arxiv.org/abs/1806.01506). The pretrained image classifier model was based on [AlexNet](https://papers.nips.cc/paper/4824-imagenet-classification-with-deep-convolutional-neural-networks.pdf), a CNN architecture designed for image classification. The following sections describes the structure and components of this framework.
+> ★ **EfficientNet-B0 + Focal Loss + EMix-S** là mô hình tốt nhất, đạt WA=80.49% và UA=73.25%.
 
-### Features extraction
+---
 
-The framework supports features extraction from the following database:
+## Cấu trúc thư mục
 
-1. [__IEMOCAP__](https://sail.usc.edu/iemocap/), a database of approximately 12 hours of audiovisual data, including video, speech, motion capture of face, and text transcriptions. The database was organized into 5 sessions, where each session contains dialog between 2 unique actors (1 male, 1 female). Each session contains scripted and improvised dialog, manually segmented into utterances and annotated by at least 3 human annotators. The average duration of each utterance is 4-5 sec. The emotion classes are {*anger, happiness, excitement, sadness, frustration, fear, surprise, neutral, others*}.
+```
+speech_emo_recognition/
+├── IEMOCAP_logspec200.pkl      # Dataset đặc trưng Log Spectrogram
+├── train_ser.py                # Script huấn luyện chính
+├── model.py                    # Định nghĩa tất cả kiến trúc mạng
+├── data_utils.py               # Xử lý và tải dữ liệu
+├── run_experiments.py          # Chạy tự động tất cả thực nghiệm
+├── crossval_efficientnet.py    # 5-Fold Cross-Validation cho EfficientNet-B0
+├── ablation_study.py           # Ablation study: CE vs Focal, EMix variants
+├── plot_comparison.py          # Vẽ biểu đồ so sánh tổng hợp
+├── test_demo.py                # Demo nhận dạng cảm xúc từ file .wav
+├── features_extraction/        # Scripts trích xuất đặc trưng
+└── *.pth                       # Trọng số các mô hình đã huấn luyện
+```
 
-2. [__emoDB__](http://www.emodb.bilderbar.info/start.html), a German database of emotional speech of approximately 500 utterances. The utterances were recorded with 10 actors (5 male, 5 female). The average duration of each utterance is 2-3 sec. The emotion classes are {*happy, angry, anxious, fearful, bored, disgust, neutral*}.
+---
 
-Spectral features are extracted from the dataset using [*librosa*](https://librosa.org) audio analysis package. The supported features are:
+## Môi trường yêu cầu
 
-|Features Label|Features|# of channels|
-|-----|--------|-------------|
-|*'logspec'* |Log spectrogram |1 |
-|*'logmelspec'* |Log Mel spectrogram |1 |
-|*'logmeldeltaspec'* |Log Mel spectrogram, ∆ , ∆∆ |3 |
-|*'lognrevspec'* |Log spectrogram of signal, signal+white noise and signal+reverb |3 |
+```bash
+# Môi trường Python (Windows, Miniforge)
+D:\miniforge3\envs\pt310\python.exe
 
-The spectrogram of each utterance is splitted into segments with length *T*. If the length of the spectrogram or last block of the split is < *T*, the spectrogram is padded with 0s. Each segment has a shape of (*C, F, T*) where *C* is the number of feature channels, and *F* the number of frequency or mel frequency bins. The extracted features are then organized into a dictionary with speaker ID as the keys, and tuple of all spectrogram segments, utterance-level labels, segment-level labels, and number of segments per utterance corresponding to each speakers.
+# Cài đặt dependencies
+pip install -r requirements.txt
+```
 
-        {'speaker_id': (all_spectrograms_segments, all_utterance_labels, all_segments_labels, number_of_segments_per_utterance)}
+**requirements.txt** bao gồm: `torch`, `torchvision`, `numpy`, `scikit-learn`, `imbalanced-learn`, `pandas`, `matplotlib`, `librosa`, `pillow`.
 
+---
 
-### SER Models
+## Hướng dẫn sử dụng
 
-Two models are available in the framework:  
+### 1. Huấn luyện một mô hình đơn lẻ
 
-1. __AlexNet Finetuning__ 
-- Pre-trained AlexNet, finetuned to classify emotion from speech spectrogram images (IEMOCAP). 
-- The model is based on *torchvision.models.alexnet* model in pyTorch.
+```bash
+python train_ser.py IEMOCAP_logspec200.pkl \
+    --ser_model efficientnet \
+    --val_id 1F --test_id 1M \
+    --num_epochs 60 --batch_size 64 --lr 0.0001 \
+    --seed 100 --gpu 1 \
+    --save_label efficientnet_focal_loss \
+    --loss_type focal \
+    --emix emix-s \
+    --pretrained
+```
 
-2. __FCN+GAP__
-- Pre-trained AlexNet with the fully connected layers replaced with global average pooling (GAP).
-- Finetuned to classify emotion from speech spectrogram images (IEMOCAP)
-- Fully-connected layers are prone to over-fitting and require large number of parameters. GAP was proposed by Lin et. al. (2014) in [*Network In Network*](https://arxiv.org/abs/1312.4400) to address these issues.
-- This model perform as well as AlexNet Finetuning but requiring only 4.5% as many parameters.
+**Tham số `--ser_model`:**
 
+| Giá trị | Mô hình |
+|---------|---------|
+| `alexnet` | AlexNet Finetuning (57M params) |
+| `alexnet_gap` | AlexNet + Global Average Pooling (2.5M params) |
+| `resnet` | ResNet-18 với Skip Connection (11.2M params) |
+| `densenet` | DenseNet-121 với Dense Block (7.0M params) |
+| `efficientnet` | EfficientNet-B0 — **Model tốt nhất** (4.0M params) |
+| `mobilenet` | MobileNet-V2 — Siêu nhẹ (2.2M params) |
 
-The model to be trained can be selected via command line with the following labels. The summary of model parameters and accuracy (5-fold, speaker independent cross-validation) are also summarized below.
+**Tham số `--loss_type`:**
+- `ce` — Cross Entropy Loss (mặc định)
+- `focal` — Focal Loss với γ=2.0, alpha được tính tự động theo phân bố dữ liệu
 
-|Model label|Model Name|# of Params.|Weighted Accuracy|Unweighted Accuracy| Model Setting |
-|-----------|----------|----------|----------|----------| ----------|
-|*'alexnet'*|AlexNet Finetuning| ~57m | 74.0% | 64.4%| baseline + stability training|
-|*'alexnet_gap'*|FCN+GAP| ~2.5m | 73.2% | 62.6% | baseline |
+**Tham số `--emix`:**
+- `emix-s` — EMix-Same: Trộn mẫu cùng nhãn, λ~U(0,1)
+- `emix-n` — EMix-Neutral: Trộn với mẫu Neutral, λ~U(0.5,1)
+- `emix-ns` — EMix-NS: Kết hợp cả hai
 
+**Phân chia Speaker-Independent:**
 
-------------------------------------
-## Usage
+| Speaker ID | Session | Giới tính |
+|------------|---------|-----------|
+| 1F, 1M | Session 1 | Female, Male |
+| 2F, 2M | Session 2 | Female, Male |
+| 3F, 3M | Session 3 | Female, Male |
+| 4F, 4M | Session 4 | Female, Male |
+| 5F, 5M | Session 5 | Female, Male |
 
-### Feature Extraction
+### 2. Chạy tất cả thực nghiệm tự động
 
-### Training/Finetuning
-The main training script is train_ser.py.
+```bash
+python run_experiments.py
+```
 
+Tự động huấn luyện 6 mô hình (bỏ qua nếu đã có `.pth`), vẽ biểu đồ, và cập nhật bảng báo cáo.
 
-python train_ser.py <*features_file*> --ser_model <*model*> --val_id <*vid*>
- --test_id <*tid*> --num_epochs <*n*> --batch_size <*b*> --lr <*l*> --seed <*s*> --gpu <*g*> --save_label <*label*> *{additional flags}*
- 
- Example:
- 
- ```python
-python train_ser.py IEMOCAP_logspec200.pkl --ser_model alexnet --val_id 1F --test_id 1M --num_epochs 100 --batch_size 64 --lr 1e-3 --seed 111 --gpu 1 --save_label alexnet_baseline --pretrained --mixup
- ```
- 
-|Script Parameter|Remarks|
-|-----------|----------|
-|features_file|File containing the features (spectrogram) extracted from the speech utterance|
-|model|alexnet, alexnet_gap|
-|vid| the ID of the speaker to be used as validation set (see note)|
-|tid| the ID of the speaker to be used as test set (see note)|
-|g|0 (cpu), 1 (gpu)|
-|label|the best finetuned model will be save to label.pth|
-|additional flags|--pretrained (to use pre-trained model)|
-| | --mixup (to use mixup)|
-| | --oversampling (to use random dataset oversampling)|
+### 3. 5-Fold Cross-Validation (EfficientNet-B0)
 
-Note:
-- IEMOCAP database consists of 5 sessions * 2 speakers per session. The speakers (5 males, 5 females) have been assigned ID based on the session and gender {1F, 1M, 2F, 2M, 3F, 3M, 4F, 4M, 5F, 5M}
+```bash
+python crossval_efficientnet.py
+```
 
-## Requirements
+Chạy 5 fold tuần tự (mỗi fold 60 epochs). Kết quả lưu vào `crossval_efficientnet_results.json`.
 
-------------------------------------
-## SER Publications
+### 4. Ablation Study
 
+```bash
+python ablation_study.py
+```
 
-------------------------------------
-## SER Datasets
+So sánh 4 cấu hình: CE only, Focal only, Focal+EMix-S, Focal+EMix-NS.
 
-### IEMOCAP
+### 5. Vẽ biểu đồ so sánh
 
-### emoDB
+```bash
+python -X utf8 plot_comparison.py
+```
 
-------------------------------------
-## Useful Packages
+Tạo các biểu đồ:
+- `comparison_wa_ua.png` — WA/UA grouped bar chart
+- `comparison_per_class.png` — Per-class accuracy heatmap
+- `comparison_params_vs_wa.png` — Params vs WA scatter
+- `summary_figure.png` — Publication-quality figure
+- `crossval_results.png` — 5-Fold CV results (nếu có JSON)
 
-### Audio feature extraction
+### 6. Demo nhận dạng cảm xúc
 
-librosa, python_speech_features
+```bash
+python test_demo.py --model efficientnet --pth efficientnet_focal_loss.pth --wav <path_to_wav>
+```
 
-### 
+---
 
-------------------------------------
-## How to Improve Model Performance?
+## Phương pháp
 
-### Dataset Oversampling
+### Đặc trưng đầu vào
+- **Log Spectrogram** 200 tần số, cắt thành segment 200ms
+- Chuẩn hóa MinMax về [0, 1]
+- Chuyển sang ảnh 3-kênh (gray → RGB-like) với AlexNet preprocessing (Resize 256)
 
-### Mixup
+### Cải tiến chính
+1. **Focal Loss** (γ=2.0): Tập trung học các mẫu khó, giải quyết mất cân bằng dữ liệu
+2. **EMix Augmentation**: Tăng cường dữ liệu theo kỹ thuật trộn đặc trưng cảm xúc
+3. **Transfer Learning**: Sử dụng ImageNet pre-trained weights
 
-### Data Augmentation
+### Phân chia dữ liệu (Speaker-Independent)
+- **Train**: 8 speakers từ 4 session
+- **Validation**: 1 speaker từ session còn lại
+- **Test**: 1 speaker còn lại từ session đó
 
+---
 
+## Tài liệu tham khảo
 
-
-
-
+- IEMOCAP Dataset: [Busso et al., 2008](https://sail.usc.edu/iemocap/)
+- Focal Loss: [Lin et al., 2017 — RetinaNet](https://arxiv.org/abs/1708.02002)
+- EfficientNet: [Tan & Le, 2019](https://arxiv.org/abs/1905.11946)
+- EMix Augmentation: Dựa trên MixUp [Zhang et al., 2018](https://arxiv.org/abs/1710.09412)
+- AlexNet: [Krizhevsky et al., 2012](https://papers.nips.cc/paper/4824-imagenet-classification-with-deep-convolutional-neural-networks.pdf)

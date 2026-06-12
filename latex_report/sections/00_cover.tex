@@ -1,0 +1,38 @@
+% ============================================================
+% TRANG BÌA
+% ============================================================
+\newgeometry{left=2.5cm, right=2.5cm, top=2.0cm, bottom=2.0cm}
+\begin{titlepage}
+\begin{tikzpicture}[remember picture, overlay]
+  \draw[line width=1.5pt] ($(current page.north west) + (1.5cm,-1.5cm)$) rectangle ($(current page.south east) + (-1.5cm,1.5cm)$);
+  \draw[line width=0.5pt] ($(current page.north west) + (1.65cm,-1.65cm)$) rectangle ($(current page.south east) + (-1.65cm,1.65cm)$);
+\end{tikzpicture}
+\begin{center}
+
+\textbf{\large ĐẠI HỌC PHENIKAA}\\[0.4cm]
+\textbf{\large TRƯỜNG CÔNG NGHỆ THÔNG TIN}\\[1.0cm]
+% Logo trường (thay đường dẫn logo phù hợp)
+\includegraphics[width=0.4\textwidth]{pnk.jpg}\\[1.2cm]
+
+{\Large \bfseries BÁO CÁO ĐỒ ÁN CƠ SỞ}\\[1.2cm]
+
+{\Large \bfseries NGHIÊN CỨU VÀ CẢI TIẾN MÔ HÌNH\\[0.4cm]
+NHẬN DẠNG CẢM XÚC GIỌNG NÓI(SER)}\\[2.0cm]
+
+{\large \textbf{Sinh viên thực hiện:}}\\[0.4cm]
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{Họ và tên} & \textbf{MSSV} & \textbf{Email} \\ \hline
+Đoàn Văn Hiệp              &23010739                 &23010739@st.phenikaa-uni.edu.vn                 \\ \hline
+Phạm Đình Trường               &23010136                 &23010136@st.phenikaa-uni.edu.vn              \\ \hline
+\end{tabular}\\[1.2cm]
+
+{\large \textbf{Giảng viên hướng dẫn: TS. Đặng Thị Thúy An}}\\[2.5cm]
+
+\vfill
+{\large Hà Nội, tháng 6 năm 2026}
+
+\end{center}
+\end{titlepage}
+\restoregeometry

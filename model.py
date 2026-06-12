@@ -188,3 +188,105 @@ class SER_AlexNet_GAP(nn.Module):
             init_layer(self.features[6])
             init_layer(self.features[8])
             init_layer(self.features[10])
+
+
+class SER_ResNet(nn.Module):
+    def __init__(self, num_classes=4, in_ch=3, pretrained=True):
+        super(SER_ResNet, self).__init__()
+        if pretrained:
+            try:
+                self.model = torchvision.models.resnet18(weights=torchvision.models.ResNet18_Weights.DEFAULT)
+            except AttributeError:
+                self.model = torchvision.models.resnet18(pretrained=True)
+        else:
+            self.model = torchvision.models.resnet18(pretrained=False)
+        
+        # Modify first conv layer if in_ch != 3
+        if in_ch != 3:
+            self.model.conv1 = nn.Conv2d(in_ch, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
+            init_layer(self.model.conv1)
+            
+        # Modify classification layer
+        self.model.fc = nn.Linear(self.model.fc.in_features, num_classes)
+        init_layer(self.model.fc)
+        print('\n<< SER ResNet18 model initialized >>\n')
+
+    def forward(self, x):
+        return self.model(x)
+
+
+class SER_DenseNet(nn.Module):
+    def __init__(self, num_classes=4, in_ch=3, pretrained=True):
+        super(SER_DenseNet, self).__init__()
+        if pretrained:
+            try:
+                self.model = torchvision.models.densenet121(weights=torchvision.models.DenseNet121_Weights.DEFAULT)
+            except AttributeError:
+                self.model = torchvision.models.densenet121(pretrained=True)
+        else:
+            self.model = torchvision.models.densenet121(pretrained=False)
+        
+        # Modify first conv layer if in_ch != 3
+        if in_ch != 3:
+            self.model.features.conv0 = nn.Conv2d(in_ch, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
+            init_layer(self.model.features.conv0)
+            
+        # Modify classification layer
+        self.model.classifier = nn.Linear(self.model.classifier.in_features, num_classes)
+        init_layer(self.model.classifier)
+        print('\n<< SER DenseNet121 model initialized >>\n')
+
+    def forward(self, x):
+        return self.model(x)
+
+
+class SER_EfficientNet(nn.Module):
+    def __init__(self, num_classes=4, in_ch=3, pretrained=True):
+        super(SER_EfficientNet, self).__init__()
+        if pretrained:
+            try:
+                self.model = torchvision.models.efficientnet_b0(weights=torchvision.models.EfficientNet_B0_Weights.DEFAULT)
+            except AttributeError:
+                self.model = torchvision.models.efficientnet_b0(pretrained=True)
+        else:
+            self.model = torchvision.models.efficientnet_b0(pretrained=False)
+        
+        # Modify first conv layer if in_ch != 3
+        if in_ch != 3:
+            self.model.features[0][0] = nn.Conv2d(in_ch, 32, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
+            init_layer(self.model.features[0][0])
+            
+        # Modify classification layer
+        in_features = self.model.classifier[1].in_features
+        self.model.classifier[1] = nn.Linear(in_features, num_classes)
+        init_layer(self.model.classifier[1])
+        print('\n<< SER EfficientNet-B0 model initialized >>\n')
+
+    def forward(self, x):
+        return self.model(x)
+
+
+class SER_MobileNet(nn.Module):
+    def __init__(self, num_classes=4, in_ch=3, pretrained=True):
+        super(SER_MobileNet, self).__init__()
+        if pretrained:
+            try:
+                self.model = torchvision.models.mobilenet_v2(weights=torchvision.models.MobileNet_V2_Weights.DEFAULT)
+            except AttributeError:
+                self.model = torchvision.models.mobilenet_v2(pretrained=True)
+        else:
+            self.model = torchvision.models.mobilenet_v2(pretrained=False)
+        
+        # Modify first conv layer if in_ch != 3
+        if in_ch != 3:
+            self.model.features[0][0] = nn.Conv2d(in_ch, 32, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
+            init_layer(self.model.features[0][0])
+            
+        # Modify classification layer
+        in_features = self.model.classifier[1].in_features
+        self.model.classifier[1] = nn.Linear(in_features, num_classes)
+        init_layer(self.model.classifier[1])
+        print('\n<< SER MobileNet-V2 model initialized >>\n')
+
+    def forward(self, x):
+        return self.model(x)
