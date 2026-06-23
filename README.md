@@ -37,7 +37,11 @@ speech_emo_recognition/
 ```
 
 ---
+Download Dataset
 
+Download the dataset đặc trưng log from Google Drive:
+
+Link: https://drive.google.com/file/d/1KtX9nfsSscaabP2uFQAqKTdfuUC5nlAk/view?usp=sharing
 ## Môi trường yêu cầu
 
 ```bash
